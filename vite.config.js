@@ -1,9 +1,12 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import basicSsl from '@vitejs/plugin-basic-ssl';
+
 
 export default defineConfig({
   plugins: [
+    basicSsl(),
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -78,5 +81,12 @@ export default defineConfig({
         type: 'module'
       }
     })
-  ]
+  ],
+  server: {
+    host: true,
+    https: {
+      key:  fs.readFileSync(path.resolve('./localhost+3-key.pem')),
+      cert: fs.readFileSync(path.resolve('./localhost+3.pem')),
+    }
+  }
 })
