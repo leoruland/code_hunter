@@ -2,13 +2,27 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import basicSsl from '@vitejs/plugin-basic-ssl';
+import fs from 'fs';
+import path from 'path';
 
 
-export default defineConfig({
-  plugins: [
-    basicSsl(),
-    vue(),
-    VitePWA({
+export default defineConfig(({ command }) => {
+  const isServe = command === 'serve';
+  const certPath = path.resolve('./localhost+3.pem');
+  const keyPath = path.resolve('./localhost+3-key.pem');
+  const httpsConfig = isServe && fs.existsSync(certPath) && fs.existsSync(keyPath)
+    ? {
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath),
+      }
+    : undefined;
+
+  return {
+    base: '/code_hunter/',
+    plugins: [
+      basicSsl(),
+      vue(),
+      VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       
@@ -81,12 +95,10 @@ export default defineConfig({
         type: 'module'
       }
     })
-  ],
-  server: {
-    host: true,
-    https: {
-      key:  fs.readFileSync(path.resolve('./localhost+3-key.pem')),
-      cert: fs.readFileSync(path.resolve('./localhost+3.pem')),
+    ],
+    server: {
+      host: true,
+      https: httpsConfig,
     }
-  }
-})
+  };
+});
